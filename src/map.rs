@@ -54,6 +54,19 @@ where
     }
 }
 
+impl<K> Clone for ExpressionMap<K>
+where
+    K: ExpressionMapKey,
+{
+    fn clone(&self) -> Self {
+        let mut new = Self::new();
+        for (key, value) in &self.table {
+            new.insert(key.clone(), value.clone());
+        }
+        new
+    }
+}
+
 impl<K> Drop for ExpressionMap<K>
 where
     K: ExpressionMapKey,
@@ -85,6 +98,10 @@ where
             mapbasicbasic_insert(self.basic, key_expr.basic.get(), value.into().basic.get());
         }
         self.table.insert(key, key_expr);
+    }
+
+    pub fn get(&mut self, key: &K) -> Option<&Expression> {
+        self.table.get(key)
     }
 
     pub fn contains_key(&mut self, key: &K) -> bool {
