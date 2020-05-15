@@ -17,7 +17,7 @@ default = ["serde"]
 
 [dependencies]
 serde = { version = "1.0", optional = true }
-symengine-sys = { path = "sys" }
+symengine-sys = "0.1"
 
 [dev-dependencies]
 serde_json = "1.0"
