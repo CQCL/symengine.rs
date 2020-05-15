@@ -4,7 +4,11 @@ version = "0.1.0"
 authors = ["h <besqer996@gnu.ac.kr>"]
 edition = "2018"
 
-categories = ["external-ffi-bindings"]
+description = "Unofficial Rust wrappers to the C++ library SymEngine, a fast C++ symbolic manipulation library."
+homepage = "https://github.com/podo-os"
+repository = "https://github.com/podo-os/symengine.rs"
+readme = "../README.md"
+license = "BSD-3-Clause"
 
 build = "build.rs"
 
