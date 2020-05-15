@@ -1,4 +1,4 @@
-use symengine::{Expression, ExpressionMap};
+use symengine::{Expression, ExpressionMap, ExpressionMapKey};
 
 #[test]
 fn simple_subs() {
@@ -8,6 +8,29 @@ fn simple_subs() {
     map.insert("a", 3i64);
     map.insert("b", -4i64);
 
-    dbg!(map.eval(&expr));
     assert_eq!(map.eval(&expr), -2i64);
+}
+
+#[test]
+fn custom_key() {
+    #[derive(Clone, PartialEq, Eq, Hash)]
+    enum Key<'a> {
+        Variable(&'a str),
+        Placeholder(&'a str),
+    }
+
+    impl<'a> ExpressionMapKey for Key<'a> {
+        fn to_string(&self) -> String {
+            match self {
+                Self::Variable(var) => format!("var_{}", var),
+                Self::Placeholder(ph) => format!("ph_{}", ph),
+            }
+        }
+    }
+
+    let mut map = ExpressionMap::new();
+    map.insert(Key::Variable("a"), 3i64);
+    map.insert(Key::Placeholder("a"), -4i64);
+
+    assert_eq!(map.eval(&Expression::new("var_a * ph_a + 10")), -2i64);
 }

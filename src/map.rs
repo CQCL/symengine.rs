@@ -10,18 +10,18 @@ use symengine_sys::*;
 use serde::{ser::SerializeMap, Deserialize, Deserializer, Serialize, Serializer};
 
 pub trait ExpressionMapKey: Clone + PartialEq + Eq + Hash {
-    fn as_str(&self) -> &str;
+    fn to_string(&self) -> String;
 }
 
 impl ExpressionMapKey for String {
-    fn as_str(&self) -> &str {
-        self
+    fn to_string(&self) -> String {
+        self.clone()
     }
 }
 
 impl<'a> ExpressionMapKey for &'a str {
-    fn as_str(&self) -> &str {
-        self
+    fn to_string(&self) -> String {
+        String::from(*self)
     }
 }
 
@@ -80,7 +80,7 @@ where
     where
         V: Into<Expression>,
     {
-        let key_expr = Expression::new(key.as_str());
+        let key_expr = Expression::new(key.to_string());
         unsafe {
             mapbasicbasic_insert(self.basic, key_expr.basic.get(), value.into().basic.get());
         }
