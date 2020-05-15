@@ -1,6 +1,6 @@
 [package]
 name = "symengine-sys"
-version = "0.1.0"
+version = "0.1.0+1"
 authors = ["h <besqer996@gnu.ac.kr>"]
 edition = "2018"
 
@@ -11,6 +11,14 @@ readme = "../README.md"
 license = "BSD-3-Clause"
 
 build = "build.rs"
+
+include = [
+    "src/**/*.rs",
+    "build.rs",
+    "wrapper.h",
+    "Cargo.toml",
+    "LICENSE",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
