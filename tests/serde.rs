@@ -23,4 +23,6 @@ fn serde_map_json() {
     let map_clone = serde_json::from_str::<ExpressionMap<_>>(&map_json).unwrap();
 
     assert_eq!(map, map_clone);
+    assert_eq!(map.eval_key(&"c"), Some(Expression::from(-1.0)));
+    assert_eq!(map_clone.eval_key(&"c"), Some(Expression::from(-1.0)));
 }

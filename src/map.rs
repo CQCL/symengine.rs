@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::hash::Hash;
 
@@ -30,7 +30,7 @@ where
     K: ExpressionMapKey,
 {
     basic: *mut CMapBasicBasic,
-    table: HashMap<K, Expression>,
+    table: HashSet<K>,
 }
 
 impl<K> ExpressionMap<K>
@@ -49,7 +49,7 @@ where
     fn default() -> Self {
         Self {
             basic: unsafe { mapbasicbasic_new() },
-            table: HashMap::new(),
+            table: HashSet::new(),
         }
     }
 }
@@ -60,8 +60,9 @@ where
 {
     fn clone(&self) -> Self {
         let mut new = Self::new();
-        for (key, value) in &self.table {
-            new.insert(key.clone(), value.clone());
+        for key in &self.table {
+            let value = self.get(key).unwrap();
+            new.insert(key.clone(), value);
         }
         new
     }
@@ -97,23 +98,36 @@ where
         unsafe {
             mapbasicbasic_insert(self.basic, key_expr.basic.get(), value.into().basic.get());
         }
-        self.table.insert(key, key_expr);
+        self.table.insert(key);
     }
 
-    pub fn get(&mut self, key: &K) -> Option<&Expression> {
-        self.table.get(key)
+    pub fn get(&self, key: &K) -> Option<Expression> {
+        if self.table.contains(key) {
+            let key_expr = Expression::new(key.to_string());
+            let value = Expression::default();
+            unsafe {
+                mapbasicbasic_get(self.basic, key_expr.basic.get(), value.basic.get());
+            }
+            Some(value)
+        } else {
+            None
+        }
     }
 
     pub fn contains_key(&mut self, key: &K) -> bool {
-        self.table.contains_key(key)
+        self.table.contains(key)
     }
 
-    pub fn eval(&self, expr: &Expression) -> Expression {
+    pub fn eval_once(&self, expr: &Expression) -> Expression {
         let out = Expression::default();
         unsafe {
             basic_subs(out.basic.get(), expr.basic.get(), self.basic);
         }
         out
+    }
+
+    pub fn eval_key(&self, key: &K) -> Option<Expression> {
+        self.get(key).map(|v| self.eval_once(&v))
     }
 
     pub fn is_empty(&self) -> bool {
@@ -144,8 +158,9 @@ where
         S: Serializer,
     {
         let mut map = serializer.serialize_map(Some(self.table.len()))?;
-        for (k, v) in &self.table {
-            map.serialize_entry(k, v)?;
+        for key in &self.table {
+            let value = self.get(key);
+            map.serialize_entry(key, &value)?;
         }
         map.end()
     }
