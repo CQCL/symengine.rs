@@ -159,7 +159,7 @@ where
     {
         let mut map = serializer.serialize_map(Some(self.table.len()))?;
         for key in &self.table {
-            let value = self.get(key);
+            let value = self.get(key).unwrap();
             map.serialize_entry(key, &value)?;
         }
         map.end()

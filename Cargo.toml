@@ -1,6 +1,6 @@
 [package]
 name = "symengine"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["h <besqer996@gnu.ac.kr>"]
 edition = "2018"
 
@@ -20,6 +20,7 @@ serde = { version = "1.0", optional = true }
 symengine-sys = "0.1"
 
 [dev-dependencies]
+bincode = "1.2"
 serde_json = "1.0"
 
 [workspace]
