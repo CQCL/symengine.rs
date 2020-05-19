@@ -203,7 +203,7 @@ impl<'de> Deserialize<'de> for Expression {
     where
         D: Deserializer<'de>,
     {
-        let expr = <&str>::deserialize(deserializer)?;
+        let expr = String::deserialize(deserializer)?;
         Ok(Self::new(expr))
     }
 }

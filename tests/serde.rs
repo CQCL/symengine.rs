@@ -53,3 +53,22 @@ fn serde_map_bincode() {
     assert_eq!(map.eval_key(&"c"), Some(Expression::from(-1.0)));
     assert_eq!(map_clone.eval_key(&"c"), Some(Expression::from(-1.0)));
 }
+
+#[test]
+#[cfg(feature = "serde")]
+fn serde_map_yaml() {
+    let mut map = ExpressionMap::new();
+    map.insert("a".to_string(), 3.0);
+    map.insert("b".to_string(), -4.0);
+    map.insert("c".to_string(), Expression::new("a + b"));
+
+    let map_bin = serde_yaml::to_string(&map).unwrap();
+    let map_clone = serde_yaml::from_str::<ExpressionMap<_>>(&map_bin).unwrap();
+
+    assert_eq!(map, map_clone);
+    assert_eq!(map.eval_key(&"c".to_string()), Some(Expression::from(-1.0)));
+    assert_eq!(
+        map_clone.eval_key(&"c".to_string()),
+        Some(Expression::from(-1.0))
+    );
+}
