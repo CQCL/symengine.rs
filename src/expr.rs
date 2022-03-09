@@ -96,8 +96,24 @@ impl Expression {
         expr.to_str().unwrap()
     }
 
+    // fn binary_op(
+    //     self,
+    //     rhs: Self,
+    //     op: unsafe extern "C" fn(
+    //         *mut basic_struct,
+    //         *mut basic_struct,
+    //         *mut basic_struct,
+    //     ) -> CWRAPPER_OUTPUT_TYPE,
+    // ) -> Self {
+    //     let out = Self::default();
+    //     unsafe {
+    //         op(out.basic.get(), self.basic.get(), rhs.basic.get());
+    //     }
+    //     out
+    // }
+
     fn binary_op(
-        self,
+        &self,
         rhs: Self,
         op: unsafe extern "C" fn(
             *mut basic_struct,
@@ -119,6 +135,22 @@ impl Expression {
     ) -> bool {
         unsafe { op(self.basic.get(), rhs.basic.get()) == 1 }
     }
+
+    pub fn neg(&self) -> Self {
+        Expression::new("0") - self.to_owned()
+    }
+
+    pub fn eval(&self) -> Option<f64> {
+        unsafe {
+            let symbols: *mut CSetBasic = setbasic_new();
+            basic_free_symbols(self.basic.get(), symbols);
+            if setbasic_size(symbols) == 0 {
+                Some(real_double_get_d(self.basic.get()))
+            } else {
+                None
+            }
+        }
+    }
 }
 
 impl<T> std::ops::Add<T> for Expression
@@ -127,7 +159,18 @@ where
 {
     type Output = Self;
 
-    fn add(self, rhs: T) -> Self {
+    fn add(self, rhs: T) -> Self::Output {
+        self.binary_op(rhs.into(), basic_add)
+    }
+}
+
+impl<T> std::ops::Add<T> for &Expression
+where
+    T: Atomic,
+{
+    type Output = Expression;
+
+    fn add(self, rhs: T) -> Self::Output {
         self.binary_op(rhs.into(), basic_add)
     }
 }
@@ -138,7 +181,18 @@ where
 {
     type Output = Self;
 
-    fn sub(self, rhs: T) -> Self {
+    fn sub(self, rhs: T) -> Self::Output {
+        self.binary_op(rhs.into(), basic_sub)
+    }
+}
+
+impl<T> std::ops::Sub<T> for &Expression
+where
+    T: Atomic,
+{
+    type Output = Expression;
+
+    fn sub(self, rhs: T) -> Self::Output {
         self.binary_op(rhs.into(), basic_sub)
     }
 }
@@ -149,7 +203,18 @@ where
 {
     type Output = Self;
 
-    fn mul(self, rhs: T) -> Self {
+    fn mul(self, rhs: T) -> Self::Output {
+        self.binary_op(rhs.into(), basic_mul)
+    }
+}
+
+impl<T> std::ops::Mul<T> for &Expression
+where
+    T: Atomic,
+{
+    type Output = Expression;
+
+    fn mul(self, rhs: T) -> Self::Output {
         self.binary_op(rhs.into(), basic_mul)
     }
 }
@@ -160,7 +225,18 @@ where
 {
     type Output = Self;
 
-    fn div(self, rhs: T) -> Self {
+    fn div(self, rhs: T) -> Self::Output {
+        self.binary_op(rhs.into(), basic_div)
+    }
+}
+
+impl<T> std::ops::Div<T> for &Expression
+where
+    T: Atomic,
+{
+    type Output = Expression;
+
+    fn div(self, rhs: T) -> Self::Output {
         self.binary_op(rhs.into(), basic_div)
     }
 }
@@ -218,3 +294,11 @@ pub trait Symbol: Into<Expression> {}
 impl Symbol for i64 {}
 impl Symbol for u64 {}
 impl Symbol for f64 {}
+
+impl From<&Expression> for Expression {
+    fn from(e: &Expression) -> Self {
+        e.to_owned()
+    }
+}
+
+impl Atomic for &Expression {}
